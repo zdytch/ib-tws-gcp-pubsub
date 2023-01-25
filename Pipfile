@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 ib_insync = "*"
-gcloud-aio-pubsub = "*"
+google-cloud-pubsub = "*"
 pydantic = "*"
 
 [dev-packages]
