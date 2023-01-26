@@ -1,5 +1,5 @@
 from ib_insync import IB, Order as IBOrder, Stock, Trade
-from .schemas import Order
+from schemas import SubmitData
 
 
 class IBConnector:
@@ -7,16 +7,16 @@ class IBConnector:
         self._ib = IB()
         self._ib.orderStatusEvent += self._order_status_callback
 
-    async def submit_order(self, order: Order) -> None:
+    async def submit_order(self, data: SubmitData) -> None:
         await self._connect()
 
         if self._ib.isConnected():
-            contract = Stock(order.symbol, f'SMART:{order.exchange}', 'USD')
+            contract = Stock(data.symbol, f'SMART:{data.exchange}', 'USD')
             ib_order = IBOrder(
                 orderId=self._ib.client.getReqId(),
-                action=order.side.value,
-                orderType=order.type.value,
-                totalQuantity=float(order.size),
+                action=data.side.value,
+                orderType=data.type.value,
+                totalQuantity=float(data.size),
                 tif='DAY',
                 transmit=True,
             )
