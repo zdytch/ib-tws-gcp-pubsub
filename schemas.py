@@ -19,6 +19,10 @@ class OrderType(Enum):
     MARKET = 'MKT'
 
 
+class CallbackData(BaseModel):
+    pass
+
+
 class Order(BaseModel):
     symbol: str
     exchange: Exchange
