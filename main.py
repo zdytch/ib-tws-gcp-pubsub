@@ -1,6 +1,6 @@
 from asyncio import Queue, run, create_task
 from schemas import CallbackData, SubmitData, StatusData
-from gcp_sub import GCPConnector
+from gcp_connector import GCPConnector
 
 _main_queue: Queue = Queue()
 _gcp_connector: GCPConnector = GCPConnector()
