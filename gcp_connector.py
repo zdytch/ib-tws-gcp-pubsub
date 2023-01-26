@@ -1,12 +1,9 @@
-import os
 from google.cloud import pubsub_v1
 from concurrent.futures import TimeoutError
 from json import loads, JSONDecodeError
 from schemas import CallbackData, SubmitData
+from settings import GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
 from typing import Callable
-
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'gcp_key.json'
-SUBSCRIPTION_PATH = 'projects/tsa-test-314819/subscriptions/test_sub'
 
 
 class GCPConnector:
@@ -17,11 +14,14 @@ class GCPConnector:
         self.data_callback = data_callback
 
     def subscribe(self) -> None:
+        subscription_path = self._subscriber.subscription_path(
+            GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
+        )
         streaming_pull_future = self._subscriber.subscribe(
-            SUBSCRIPTION_PATH, callback=self._subscriber_callback
+            subscription_path, callback=self._subscriber_callback
         )
 
-        print(f'Listening for messages on {SUBSCRIPTION_PATH}..\n')
+        print(f'Listening for messages on {subscription_path}..\n')
 
         with self._subscriber:
             try:
