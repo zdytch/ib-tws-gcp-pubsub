@@ -23,10 +23,14 @@ class CallbackData(BaseModel):
     pass
 
 
-class Order(BaseModel):
+class SubmitData(CallbackData):
     symbol: str
     exchange: Exchange
     side: Side
     type: OrderType
     size: int
     price: Decimal = Decimal('0.0')
+
+
+class StatusData(CallbackData):
+    ...
