@@ -1,5 +1,6 @@
 from ib_insync import IB, Order as IBOrder, Stock, Trade
 from schemas import SubmitData
+from loguru import logger
 
 
 class IBConnector:
@@ -29,7 +30,7 @@ class IBConnector:
                 await self._ib.connectAsync('localhost', 4002, 1)
 
             except Exception as error:
-                print(error)
+                logger.debug(error)
 
     def _order_status_callback(self, trade: Trade) -> None:
-        print(f'IB trade changed: {trade}')
+        logger.debug(f'IB trade changed: {trade}')

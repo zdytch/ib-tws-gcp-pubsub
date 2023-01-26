@@ -1,9 +1,19 @@
 from asyncio import Queue, run, create_task
 from schemas import CallbackData, SubmitData, StatusData
 from gcp_connector import GCPConnector
+from loguru import logger
 
 _main_queue: Queue = Queue()
 _gcp_connector: GCPConnector = GCPConnector()
+
+logger.add(
+    'logs/{time}.log',
+    format='{time} {level} {message}',
+    level='DEBUG',
+    rotation='100 MB',
+    retention='14 days',
+    compression='zip',
+)
 
 
 async def main():
@@ -19,10 +29,10 @@ async def _dequeue() -> None:
         data_type = type(data)
 
         if data_type == SubmitData:
-            ...  # Submit with IB connector
+            logger.debug(data)  # TODO: Submit with IB connector
 
         elif data_type == StatusData:
-            ...  # Publish with GCP connector
+            logger.debug(data)  # TODO: Publish with GCP connector
 
         _main_queue.task_done()
 

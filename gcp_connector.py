@@ -4,6 +4,7 @@ from json import loads, JSONDecodeError
 from schemas import CallbackData, SubmitData
 from settings import GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
 from typing import Callable
+from loguru import logger
 
 
 class GCPConnector:
@@ -21,7 +22,7 @@ class GCPConnector:
             subscription_path, callback=self._subscriber_callback
         )
 
-        print(f'Listening for messages on {subscription_path}..\n')
+        logger.debug(f'Listening for messages on {subscription_path}...')
 
         with self._subscriber:
             try:
@@ -45,4 +46,4 @@ class GCPConnector:
                     self.data_callback(data)
 
             except JSONDecodeError as error:
-                print(error)
+                logger.debug(error)
