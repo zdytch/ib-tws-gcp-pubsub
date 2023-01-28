@@ -1,5 +1,6 @@
 from gcloud.aio.pubsub import SubscriberClient, SubscriberMessage, subscribe
 from json import loads, JSONDecodeError
+from pydantic import ValidationError
 from schemas import CallbackData, SubmitData
 from settings import GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
 from typing import Callable
@@ -27,5 +28,5 @@ async def _subscriber_callback(message: SubscriberMessage) -> None:
             if _data_callback:
                 _data_callback(data)
 
-        except JSONDecodeError as error:
+        except (JSONDecodeError, ValidationError) as error:
             logger.debug(error)
