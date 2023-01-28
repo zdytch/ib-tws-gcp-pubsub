@@ -1,10 +1,9 @@
-from asyncio import Queue, run, create_task
+from asyncio import Queue, run, create_task, gather
 from schemas import CallbackData, SubmitData, StatusData
-from gcp_connector import GCPConnector
+from gcp_connector import listen
 from loguru import logger
 
 _main_queue: Queue = Queue()
-_gcp_connector: GCPConnector = GCPConnector()
 
 logger.add(
     'logs/{time}.log',
@@ -17,10 +16,10 @@ logger.add(
 
 
 async def main():
-    _gcp_connector.set_data_callback(_connector_callback)
-    _gcp_connector.subscribe()
+    t1 = create_task(_dequeue())
+    t2 = create_task(listen(_connector_callback))
 
-    create_task(_dequeue())
+    await gather(t1, t2)
 
 
 async def _dequeue() -> None:

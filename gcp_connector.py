@@ -1,49 +1,39 @@
-from google.cloud import pubsub_v1
-from concurrent.futures import TimeoutError
+from gcloud.aio.pubsub import SubscriberClient, SubscriberMessage, subscribe
 from json import loads, JSONDecodeError
 from schemas import CallbackData, SubmitData
 from settings import GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
 from typing import Callable
 from loguru import logger
 
+_data_callback: Callable[[CallbackData], None]
 
-class GCPConnector:
-    def __init__(self):
-        self._subscriber = pubsub_v1.SubscriberClient()
 
-    def set_data_callback(self, data_callback: Callable[[CallbackData], None]) -> None:
-        self.data_callback = data_callback
+async def listen(data_callback: Callable[[CallbackData], None]) -> None:
+    global _data_callback
+    _data_callback = data_callback
 
-    def subscribe(self) -> None:
-        subscription_path = self._subscriber.subscription_path(
-            GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
-        )
-        streaming_pull_future = self._subscriber.subscribe(
-            subscription_path, callback=self._subscriber_callback
-        )
+    subscriber = SubscriberClient()
+    await subscribe(
+        f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBSCRIPTION_ID}',
+        _subscriber_callback,
+        subscriber,
+        num_producers=1,
+        max_messages_per_producer=100,
+        ack_window=0.3,
+        num_tasks_per_consumer=1,
+        enable_nack=True,
+        nack_window=0.3,
+    )
 
-        logger.debug(f'Listening for messages on {subscription_path}...')
 
-        with self._subscriber:
-            try:
-                streaming_pull_future.result()
+async def _subscriber_callback(message: SubscriberMessage) -> None:
+    if message.data:
+        try:
+            json = loads(message.data)
+            data = SubmitData(**json)
 
-            except (TimeoutError, KeyboardInterrupt):
-                streaming_pull_future.cancel()
-                streaming_pull_future.result()
+            if _data_callback:
+                _data_callback(data)
 
-    def _subscriber_callback(
-        self, message: pubsub_v1.subscriber.message.Message
-    ) -> None:
-        message.ack()
-
-        if message.data:
-            try:
-                json = loads(message.data)
-                data = SubmitData(**json)
-
-                if hasattr(self, 'data_callback'):
-                    self.data_callback(data)
-
-            except JSONDecodeError as error:
-                logger.debug(error)
+        except JSONDecodeError as error:
+            logger.debug(error)
