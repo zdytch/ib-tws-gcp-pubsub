@@ -12,18 +12,10 @@ async def listen(data_callback: Callable[[CallbackData], None]) -> None:
     global _data_callback
     _data_callback = data_callback
 
+    subscription_path = f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBSCRIPTION_ID}'
     subscriber = SubscriberClient()
-    await subscribe(
-        f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBSCRIPTION_ID}',
-        _subscriber_callback,
-        subscriber,
-        num_producers=1,
-        max_messages_per_producer=100,
-        ack_window=0.3,
-        num_tasks_per_consumer=1,
-        enable_nack=True,
-        nack_window=0.3,
-    )
+
+    await subscribe(subscription_path, _subscriber_callback, subscriber)
 
 
 async def _subscriber_callback(message: SubscriberMessage) -> None:
