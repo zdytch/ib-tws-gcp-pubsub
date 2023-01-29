@@ -16,6 +16,8 @@ async def listen(data_callback: Callable[[CallbackData], None]) -> None:
     subscription_path = f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBSCRIPTION_ID}'
     subscriber = SubscriberClient()
 
+    logger.debug(f'Listening for messages on {subscription_path}...')
+
     await subscribe(subscription_path, _subscriber_callback, subscriber)
 
 
