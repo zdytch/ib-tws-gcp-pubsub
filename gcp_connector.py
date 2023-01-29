@@ -1,49 +1,34 @@
-from google.cloud import pubsub_v1
-from concurrent.futures import TimeoutError
+from gcloud.aio.pubsub import SubscriberClient, SubscriberMessage, subscribe
 from json import loads, JSONDecodeError
+from pydantic import ValidationError
 from schemas import CallbackData, SubmitData
 from settings import GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
 from typing import Callable
 from loguru import logger
 
+_data_callback: Callable[[CallbackData], None]
 
-class GCPConnector:
-    def __init__(self):
-        self._subscriber = pubsub_v1.SubscriberClient()
 
-    def set_data_callback(self, data_callback: Callable[[CallbackData], None]) -> None:
-        self.data_callback = data_callback
+async def listen(data_callback: Callable[[CallbackData], None]) -> None:
+    global _data_callback
+    _data_callback = data_callback
 
-    def subscribe(self) -> None:
-        subscription_path = self._subscriber.subscription_path(
-            GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
-        )
-        streaming_pull_future = self._subscriber.subscribe(
-            subscription_path, callback=self._subscriber_callback
-        )
+    subscription_path = f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBSCRIPTION_ID}'
+    subscriber = SubscriberClient()
 
-        logger.debug(f'Listening for messages on {subscription_path}...')
+    logger.debug(f'Listening for messages on {subscription_path}...')
 
-        with self._subscriber:
-            try:
-                streaming_pull_future.result()
+    await subscribe(subscription_path, _subscriber_callback, subscriber)
 
-            except (TimeoutError, KeyboardInterrupt):
-                streaming_pull_future.cancel()
-                streaming_pull_future.result()
 
-    def _subscriber_callback(
-        self, message: pubsub_v1.subscriber.message.Message
-    ) -> None:
-        message.ack()
+async def _subscriber_callback(message: SubscriberMessage) -> None:
+    if message.data:
+        try:
+            json = loads(message.data)
+            data = SubmitData(**json)
 
-        if message.data:
-            try:
-                json = loads(message.data)
-                data = SubmitData(**json)
+            if _data_callback:
+                _data_callback(data)
 
-                if hasattr(self, 'data_callback'):
-                    self.data_callback(data)
-
-            except JSONDecodeError as error:
-                logger.debug(error)
+        except (JSONDecodeError, ValidationError) as error:
+            logger.debug(error)
