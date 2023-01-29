@@ -18,7 +18,7 @@ class IBConnector:
         await self._connect()
 
         if self._ib.isConnected():
-            contract = Stock(data.symbol, f'SMART:{data.exchange}', 'USD')
+            contract = Stock(data.symbol, f'SMART:{data.exchange.value}', 'USD')
             ib_order = IBOrder(
                 orderId=self._ib.client.getReqId(),
                 orderRef=str(data.id),
