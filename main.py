@@ -36,7 +36,7 @@ async def _dequeue() -> None:
             await _ib_connector.submit_order(data)
 
         elif data_type == StatusData:
-            logger.debug(data)  # TODO: Publish with GCP connector
+            await _gcp_connector.publish_status(data)
 
         _main_queue.task_done()
 
