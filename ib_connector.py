@@ -11,20 +11,26 @@ class IBConnector:
         self._ib = IB()
         self._ib.orderStatusEvent += self._order_status_callback
 
+    def is_connected(self) -> bool:
+        return self._ib.isConnected()
+
     def set_data_callback(self, data_callback: Callable[[CallbackData], None]) -> None:
         self.data_callback = data_callback
 
     async def submit_order(self, data: SubmitData) -> None:
         await self._connect()
 
-        if self._ib.isConnected():
+        if self.is_connected():
             contract = Stock(data.symbol, f'SMART:{data.exchange.value}', 'USD')
             order = self._create_order(data)
 
             self._ib.placeOrder(contract, order)
 
+        else:
+            logger.debug('Cannot submit order, IB disconnected')
+
     async def _connect(self):
-        if not self._ib.isConnected():
+        if not self.is_connected():
             try:
                 await self._ib.connectAsync('localhost', 4002, 1)
 
