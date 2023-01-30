@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from enum import Enum
 from decimal import Decimal
+from uuid import UUID
 
 
 class Exchange(Enum):
@@ -19,8 +20,15 @@ class OrderType(Enum):
     MARKET = 'MKT'
 
 
+class OrderStatus(Enum):
+    SUBMITTED = 'SUBMITTED'
+    PARTIALLY_FILLED = 'PARTIALLY_FILLED'
+    FILLED = 'FILLED'
+    CANCELLED = 'CANCELLED'
+
+
 class CallbackData(BaseModel):
-    pass
+    id: UUID
 
 
 class SubmitData(CallbackData):
@@ -29,8 +37,10 @@ class SubmitData(CallbackData):
     side: Side
     type: OrderType
     size: int
-    price: Decimal = Decimal('0.0')
+    price: Decimal
 
 
 class StatusData(CallbackData):
-    ...
+    status: OrderStatus
+    fill_size: int
+    fill_price: Decimal
