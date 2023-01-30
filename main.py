@@ -42,8 +42,8 @@ async def _dequeue() -> None:
         _main_queue.task_done()
 
 
-def _connector_callback(data: CallbackData) -> None:
-    _main_queue.put_nowait(data)
+async def _connector_callback(data: CallbackData) -> None:
+    await _main_queue.put(data)
 
 
 if __name__ == '__main__':

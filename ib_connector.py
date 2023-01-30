@@ -3,7 +3,7 @@ from ib_insync import IB, Order, Stock, Trade, Contract
 from schemas import CallbackData, SubmitData, StatusData, OrderStatus, OrderType
 from decimal import Decimal
 from uuid import UUID
-from typing import Callable
+from typing import Callable, Awaitable
 from loguru import logger
 
 
@@ -19,7 +19,9 @@ class IBConnector:
     def is_connected(self) -> bool:
         return self._ib.isConnected()
 
-    def set_data_callback(self, data_callback: Callable[[CallbackData], None]) -> None:
+    def set_data_callback(
+        self, data_callback: Callable[[CallbackData], Awaitable]
+    ) -> None:
         self.data_callback = data_callback
 
     async def submit_order(self, data: SubmitData) -> None:
@@ -66,7 +68,7 @@ class IBConnector:
     ) -> None:
         logger.debug(f'{req_id} {code} {message} {contract if contract else ""}')
 
-    def _order_status_callback(self, trade: Trade) -> None:
+    async def _order_status_callback(self, trade: Trade) -> None:
         logger.debug(f'IB trade changed: {trade}')
 
         if hasattr(self, 'data_callback'):
@@ -95,7 +97,7 @@ class IBConnector:
                     fill_price=fill_price,
                 )
 
-                self.data_callback(data)
+                await self.data_callback(data)
 
         else:
             logger.debug('Cannot send OrderStatus, data callback not set')

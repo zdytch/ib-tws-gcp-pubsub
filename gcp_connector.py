@@ -10,7 +10,7 @@ from aiohttp import ClientSession
 from pydantic import ValidationError
 from schemas import CallbackData, SubmitData, StatusData
 from settings import GCP_PROJECT_ID, GCP_STATUS_TOPIC_ID, GCP_SUBMIT_TOPIC_SUB_ID
-from typing import Callable
+from typing import Callable, Awaitable
 from loguru import logger
 
 
@@ -24,7 +24,9 @@ class GCPConnector:
     def run(self) -> None:
         create_task(self._listen())
 
-    def set_data_callback(self, data_callback: Callable[[CallbackData], None]) -> None:
+    def set_data_callback(
+        self, data_callback: Callable[[CallbackData], Awaitable]
+    ) -> None:
         self.data_callback = data_callback
 
     async def publish_status(self, data: StatusData) -> None:
@@ -47,7 +49,7 @@ class GCPConnector:
                 data = SubmitData.parse_raw(message.data)
 
                 if hasattr(self, 'data_callback'):
-                    self.data_callback(data)
+                    await self.data_callback(data)
 
                 else:
                     logger.debug('Cannot send SubmitData, data callback not set')
