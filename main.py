@@ -20,6 +20,7 @@ logger.add(
 
 async def main():
     _ib_connector.set_data_callback(_connector_callback)
+    _ib_connector.run()
 
     _gcp_connector.set_data_callback(_connector_callback)
     _gcp_connector.run()

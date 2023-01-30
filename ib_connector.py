@@ -1,4 +1,5 @@
-from ib_insync import IB, Order, Stock, Trade
+from asyncio import create_task
+from ib_insync import IB, Order, Stock, Trade, Contract
 from schemas import CallbackData, SubmitData, StatusData, OrderStatus, OrderType
 from decimal import Decimal
 from uuid import UUID
@@ -9,7 +10,11 @@ from loguru import logger
 class IBConnector:
     def __init__(self):
         self._ib = IB()
+        self._ib.errorEvent += self._error_callback
         self._ib.orderStatusEvent += self._order_status_callback
+
+    def run(self) -> None:
+        create_task(self._connect())
 
     def is_connected(self) -> bool:
         return self._ib.isConnected()
@@ -55,6 +60,11 @@ class IBConnector:
             order.auxPrice = float(data.price)
 
         return order
+
+    async def _error_callback(
+        self, req_id: int, code: int, message: str, contract: Contract | None
+    ) -> None:
+        logger.debug(f'{req_id} {code} {message} {contract if contract else ""}')
 
     def _order_status_callback(self, trade: Trade) -> None:
         logger.debug(f'IB trade changed: {trade}')
