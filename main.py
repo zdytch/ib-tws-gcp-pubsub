@@ -1,11 +1,12 @@
-from asyncio import Queue, run, create_task, gather
+from asyncio import Queue, run
 from schemas import CallbackData, SubmitData, StatusData
 from ib_connector import IBConnector
-from gcp_connector import listen
+from gcp_connector import GCPConnector
 from loguru import logger
 
 _main_queue: Queue = Queue()
 _ib_connector = IBConnector()
+_gcp_connector = GCPConnector()
 
 logger.add(
     'logs/{time}.log',
@@ -20,10 +21,10 @@ logger.add(
 async def main():
     _ib_connector.set_data_callback(_connector_callback)
 
-    t1 = create_task(_dequeue())
-    t2 = create_task(listen(_connector_callback))
+    _gcp_connector.set_data_callback(_connector_callback)
+    _gcp_connector.run()
 
-    await gather(t1, t2)
+    await _dequeue()
 
 
 async def _dequeue() -> None:
@@ -35,7 +36,7 @@ async def _dequeue() -> None:
             await _ib_connector.submit_order(data)
 
         elif data_type == StatusData:
-            logger.debug(data)  # TODO: Publish with GCP connector
+            await _gcp_connector.publish_status(data)
 
         _main_queue.task_done()
 

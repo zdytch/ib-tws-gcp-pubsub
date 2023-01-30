@@ -1,34 +1,56 @@
-from gcloud.aio.pubsub import SubscriberClient, SubscriberMessage, subscribe
-from json import loads, JSONDecodeError
+from asyncio import create_task
+from gcloud.aio.pubsub import (
+    SubscriberClient,
+    PublisherClient,
+    SubscriberMessage,
+    PubsubMessage,
+    subscribe,
+)
+from aiohttp import ClientSession
 from pydantic import ValidationError
-from schemas import CallbackData, SubmitData
-from settings import GCP_PROJECT_ID, GCP_SUBSCRIPTION_ID
+from schemas import CallbackData, SubmitData, StatusData
+from settings import GCP_PROJECT_ID, GCP_STATUS_TOPIC_ID, GCP_SUBMIT_TOPIC_SUB_ID
 from typing import Callable
 from loguru import logger
 
-_data_callback: Callable[[CallbackData], None]
 
+class GCPConnector:
+    def __init__(self):
+        self._status_topic = f'projects/{GCP_PROJECT_ID}/topics/{GCP_STATUS_TOPIC_ID}'
+        self._submit_topic_sub = (
+            f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBMIT_TOPIC_SUB_ID}'
+        )
 
-async def listen(data_callback: Callable[[CallbackData], None]) -> None:
-    global _data_callback
-    _data_callback = data_callback
+    def run(self) -> None:
+        create_task(self._listen())
 
-    subscription_path = f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBSCRIPTION_ID}'
-    subscriber = SubscriberClient()
+    def set_data_callback(self, data_callback: Callable[[CallbackData], None]) -> None:
+        self.data_callback = data_callback
 
-    logger.debug(f'Listening for messages on {subscription_path}...')
+    async def publish_status(self, data: StatusData) -> None:
+        async with ClientSession() as session:
+            publisher = PublisherClient(session=session)
+            messages = [PubsubMessage(data.json())]
 
-    await subscribe(subscription_path, _subscriber_callback, subscriber)
+            await publisher.publish(self._status_topic, messages)
 
+    async def _listen(self) -> None:
+        logger.debug(f'Listening for messages on {self._submit_topic_sub}...')
 
-async def _subscriber_callback(message: SubscriberMessage) -> None:
-    if message.data:
-        try:
-            json = loads(message.data)
-            data = SubmitData(**json)
+        subscriber = SubscriberClient()
 
-            if _data_callback:
-                _data_callback(data)
+        await subscribe(self._submit_topic_sub, self._subscriber_callback, subscriber)
 
-        except (JSONDecodeError, ValidationError) as error:
-            logger.debug(error)
+    async def _subscriber_callback(self, message: SubscriberMessage) -> None:
+        if message.data:
+            try:
+                data = SubmitData.parse_raw(message.data)
+
+                if hasattr(self, 'data_callback'):
+                    self.data_callback(data)
+
+                else:
+                    logger.debug('Cannot send SubmitData, data callback not set')
+
+            except ValidationError as error:
+                logger.debug(error)
