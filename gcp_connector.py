@@ -9,16 +9,16 @@ from gcloud.aio.pubsub import (
 from aiohttp import ClientSession
 from pydantic import ValidationError
 from schemas import CallbackData, SubmitData, StatusData
-from settings import GCP_PROJECT_ID, GCP_STATUS_TOPIC_ID, GCP_SUBMIT_TOPIC_SUB_ID
+from settings import GCP_PROJECT, GCP_STATUS_TOPIC, GCP_SUBMIT_TOPIC_SUB
 from typing import Callable, Awaitable
 from loguru import logger
 
 
 class GCPConnector:
     def __init__(self):
-        self._status_topic = f'projects/{GCP_PROJECT_ID}/topics/{GCP_STATUS_TOPIC_ID}'
+        self._status_topic = f'projects/{GCP_PROJECT}/topics/{GCP_STATUS_TOPIC}'
         self._submit_topic_sub = (
-            f'projects/{GCP_PROJECT_ID}/subscriptions/{GCP_SUBMIT_TOPIC_SUB_ID}'
+            f'projects/{GCP_PROJECT}/subscriptions/{GCP_SUBMIT_TOPIC_SUB}'
         )
 
     def run(self) -> None:
