@@ -39,7 +39,7 @@ class IBConnector:
     async def _connect(self):
         if not self.is_connected():
             try:
-                await self._ib.connectAsync('localhost', 4002, 1)
+                await self._ib.connectAsync('host.docker.internal', 7497, 1)
 
             except Exception as error:
                 logger.debug(error)
