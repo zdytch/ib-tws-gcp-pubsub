@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  gcp-pubsub-test:
+    build:
+      target: base-dev
+    volumes:
+      - ./app/src:/usr/src
