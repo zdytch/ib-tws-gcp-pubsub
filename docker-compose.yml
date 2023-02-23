@@ -4,6 +4,9 @@ services:
   gcp-pubsub-app:
     environment:
       - TZ=$TIME_ZONE
+      - GCP_PROJECT=$GCP_PROJECT
+      - GCP_STATUS_TOPIC=$GCP_STATUS_TOPIC
+      - GCP_SUBMIT_TOPIC_SUB=$GCP_SUBMIT_TOPIC_SUB
     container_name: gcp-pubsub-app
     restart: unless-stopped
     build:
