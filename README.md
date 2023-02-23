@@ -29,7 +29,9 @@ The app listens to a GCP topic subscription and translates queue messages to ord
 ## Usage
 
 Publish a JSON-formatted message to the submit GCP topic:
-`{"id": "b5de42e4-16e6-4e3c-839a-eb55d62f0205", "symbol": "AAPL", "exchange": "NASDAQ", "side": "BUY", "type": "MKT", "size": 1, "price": 0.0}`
+```
+{"id": "b5de42e4-16e6-4e3c-839a-eb55d62f0205", "symbol": "AAPL", "exchange": "NASDAQ", "side": "BUY", "type": "MKT", "size": 1, "price": 0.0}
+```
 This submits a market buy order of size 1 for NASDAQ:AAPL
 
 The `id` field used to syncronize with external order logic
