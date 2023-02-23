@@ -7,7 +7,7 @@ The app listens to a GCP topic subscription and translates queue messages to ord
 ## Setup
 
 ### Prepare environment
-- Clone the repository: `git clone https://github.com/zdytch/ib-tws-gcp-pubsub-asyncio.git`
+- Clone the repository: `git clone https://github.com/zdytch/ib-tws-gcp-pubsub.git`
 - Switch to the project directory: `cd /path/to/project/directory`
 - Create a copy of environment file from the sample: `cp .env.sample .env`
 - Open .env file with any text editor, e.g.: `nano .env`
