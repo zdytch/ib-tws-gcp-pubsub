@@ -26,8 +26,24 @@ The app listens to a GCP topic subscription and translates queue messages to ord
 
 - COMPOSE_PROJECT_NAME: used by docker engine to label images, doesn't affect the application
 
-## Usage
+### Setup TWS Application
+- Run the TWS application from your desktop
+- Login with your username, password and trading mode
+- From menu, open 'File' - 'Global Configuration...'
+- 'API' - 'Settings' section: 'Enable activex and socket clients' -> ENABLE, 'API readonly' -> DISABLE, 'Socket port' -> 7497
+- 'API' - 'Precautions' section: set -> ENABLE for all precautions
+- Press 'Apply', then 'Ok'
+- Close the application using 'X' button in the corner. That will upload application settings from desktop to IB server
 
+### Setup Docker
+- Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+
+## Run
+- Run TWS application
+- Switch to the project folder: `cd /path/to/project/directory`
+- Run: `docker compose up --build`
+
+## Usage
 Publish a JSON-formatted message to the submit GCP topic:
 ```
 {"id": "b5de42e4-16e6-4e3c-839a-eb55d62f0205", "symbol": "AAPL", "exchange": "NASDAQ", "side": "BUY", "type": "MKT", "size": 1, "price": 0.0}
