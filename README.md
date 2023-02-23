@@ -37,7 +37,7 @@ The `id` field used to syncronize with external order logic
 After the order submitted, status update messages will appear in status GCP topic
 
 ### Supported data types
-Exchanges: 'NYSE' and 'NASDAQ'
-Sides: 'BUY' and 'SELL'
-Order types: 'LMT', 'STP', 'MKT'
-Order statuses: 'SUBMITTED', 'PARTIALLY_FILLED', 'FILLED', 'CANCELLED'
+- Exchanges: `NYSE`, `NASDAQ`
+- Sides: `BUY`, `SELL`
+- Order types: `LMT`, `STP`, `MKT`
+- Order statuses: `SUBMITTED`, `PARTIALLY_FILLED`, `FILLED`, `CANCELLED`
